@@ -32,4 +32,26 @@ model Device{
   user User @relation(fields: [userId], references: [id])
   userId Int 
 
+  data NotarizedData[]
+}
+
+model NotarizedData{
+
+  id Int @id @default(autoincrement())
+  
+  device Device @relation(fields: [deviceId], references: [id])
+  deviceId Int
+
+  time DateTime
+  temprature Decimal
+
+  totalEnergy Decimal
+  today Decimal
+  power Int
+  apparentPower Int
+  reactivePower Int 
+  factor Decimal
+  voltage Int
+  current Decimal
+
 }
