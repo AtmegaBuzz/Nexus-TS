@@ -3,6 +3,7 @@ import * as bodyParser from "body-parser";
 import cors = require("cors");
 
 import notarizeRouter from "./routes/notarize.router";
+import deviceROuter from "./routes/device.route";
 
 const app: Express = express();
 const PORT = 3001;
@@ -13,6 +14,7 @@ app.use(cors());
 
 // routes
 app.use("/api/notarize", notarizeRouter);
+app.use("/api/device", deviceROuter);
 
 
 

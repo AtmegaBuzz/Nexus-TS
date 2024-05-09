@@ -53,5 +53,5 @@ model NotarizedData{
   factor Decimal
   voltage Int
   current Decimal
-
+  raw String?
 }
