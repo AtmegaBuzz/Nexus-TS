@@ -29,7 +29,6 @@ export const offchainNotarization = async (req: Request, res: Response) => {
 
     try {
 
-        console.log(req.body)
         const address = req.body.address;
         const data: NotarizedDataInterface = JSON.parse(req.body.data);
 
@@ -98,12 +97,11 @@ export const verifyNotarizedData = async (req: Request, res: Response) => {
     try {
 
         const address = req.body.address?.toString();
+
         let data: NotarizedData = JSON.parse(req.body.data);
 
         let reconstructed_json = `{"Time":"${data.Time}","ANALOG":{"Temperature1":${data.ANALOG.Temperature1.toFixed(1)}},"ENERGY":{"TotalStartTime":"${data.ENERGY.TotalStartTime}","Total":${data.ENERGY.Total.toFixed(3)},"Yesterday":${data.ENERGY.Yesterday.toFixed(3)},"Today":${data.ENERGY.Today.toFixed(3)},"Power":${data.ENERGY.Power},"ApparentPower":${data.ENERGY.ApparentPower},"ReactivePower":${data.ENERGY.ApparentPower},"Factor":${data.ENERGY.Factor.toFixed(2)},"Voltage":${data.ENERGY.Voltage},"Current":${data.ENERGY.Current.toFixed(3)}},"TempUnit":"C"}`
-        console.log(reconstructed_json)
         let data_cid = await generateCID(reconstructed_json);
-        console.log("cid", data_cid)
 
         let resp = await fetch(`https://testnet-api.rddl.io/planetmint/asset/address/${address}/3`, {
             method: "GET"
