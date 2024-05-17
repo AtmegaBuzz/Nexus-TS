@@ -26,7 +26,7 @@ async function generateCID(inputString) {
 }
 
 // Example usage
-const inputString = '{"Time":"2024-05-09T11:02:20","ANALOG":{"Temperature1":-23.4},"ENERGY":{"TotalStartTime":"2024-05-09T10:23:41","Total":0.000,"Yesterday":0.000,"Today":0.000,"Power":0,"ApparentPower":0,"ReactivePower":0,"Factor":0.00,"Voltage":0,"Current":0.000},"TempUnit":"C"}';
+const inputString = '{"Time":"2024-05-17T21:27:44","ANALOG":{"Temperature1":-17.9},"ENERGY":{"TotalStartTime":"2024-05-17T13:35:51","Total":0.000,"Yesterday":0.000,"Today":0.000,"Power":0,"ApparentPower":0,"ReactivePower":0,"Factor":0.00,"Voltage":0,"Current":0.000},"TempUnit":"C"}';
 console.log(JSON.stringify(inputString));
 generateCID(inputString)
     .then(cid => {
