@@ -30,7 +30,8 @@ export const offchainNotarization = async (req: Request, res: Response) => {
     try {
 
         const address = req.body.address;
-        const data: NotarizedDataInterface = JSON.parse(req.body.data);
+        console.log(req.body.data)
+        const data = JSON.parse(req.body.data);
         console.log(req.body)
         const device = await prisma.device.findFirst({
             where: {
