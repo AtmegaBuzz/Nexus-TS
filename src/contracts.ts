@@ -1,23 +1,24 @@
 import Web3 from "web3";
-
+import dotenv from "dotenv";
 import { readFileSync } from "fs";
+
 const abi = JSON.parse(readFileSync("./abi.json", 'utf8'));
 
 const network = process.env.ETHEREUM_NETWORK;
 const web3 = new Web3(
     new Web3.providers.HttpProvider(
-        `https://sepolia.infura.io/v3/ed98fbfcd55f46489f27a07dcdbeb869`,
+        `https://sepolia.infura.io/v3/${process.env.INFURA_API}`,
     ),
 );
 
 const signer = web3.eth.accounts.privateKeyToAccount(
-    "0xe5875d5550484e5f20bfa8efe3976432890ba8e43f3b77dd37375f61c0acfc2d"
+    process.env.WALLET_PRIVATE_KEY?
 );
 web3.eth.accounts.wallet.add(signer);
 
 const contract = new web3.eth.Contract(
     abi,
-    "0xa4061cdFf9f8d286B9FB8fB54C010Ab91E69443a",
+    process.env.CONTRACT_ADDRESS,
 );
 
 
