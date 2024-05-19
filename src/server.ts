@@ -8,8 +8,11 @@ import deviceROuter from "./routes/device.route";
 const app: Express = express();
 const PORT = 3001;
 
-app.use(bodyParser.json());
-app.use(express.json());
+app.use(bodyParser.json({
+    verify: (req, res, buf) => {
+        console.log(buf.toString());
+    }
+}));app.use(express.json());
 app.use(cors());
 
 // routes

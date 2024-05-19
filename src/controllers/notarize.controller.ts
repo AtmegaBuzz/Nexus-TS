@@ -2,6 +2,7 @@ import { Request, Response } from "express"
 import { prisma } from "../Prisma";
 import { Decimal } from "@prisma/client/runtime/library";
 import { generateCID } from "../utils";
+import { mintInfo } from "../contracts";
 
 
 interface NotarizedDataInterface {
@@ -28,23 +29,21 @@ interface NotarizedDataInterface {
 export const offchainNotarization = async (req: Request, res: Response) => {
 
     try {
-
         const address = req.body.address;
-        console.log(req.body.data)
-        const data = JSON.parse(req.body.data);
-        console.log(req.body)
+        const data = req.body.data;
+        let reconstructed_json = `{"Time":"${data.Time}","ANALOG":{"Temperature1":${data.ANALOG.Temperature1.toFixed(1)}},"ENERGY":{"TotalStartTime":"${data.ENERGY.TotalStartTime}","Total":${data.ENERGY.Total.toFixed(3)},"Yesterday":${data.ENERGY.Yesterday.toFixed(3)},"Today":${data.ENERGY.Today.toFixed(3)},"Power":${data.ENERGY.Power},"ApparentPower":${data.ENERGY.ApparentPower},"ReactivePower":${data.ENERGY.ApparentPower},"Factor":${data.ENERGY.Factor.toFixed(2)},"Voltage":${data.ENERGY.Voltage},"Current":${data.ENERGY.Current.toFixed(3)}},"TempUnit":"C"}`
         const device = await prisma.device.findFirst({
             where: {
                 address: address
             }
         })
-
+        
         if (device === null) {
             res.send("DEVICE DOESN'T EXISTS")
         }
-
+        
         else {
-
+            
             await prisma.notarizedData.create({
                 data: {
                     deviceId: device?.id!,
@@ -58,12 +57,14 @@ export const offchainNotarization = async (req: Request, res: Response) => {
                     factor: data.ENERGY.Factor,
                     voltage: data.ENERGY.Voltage,
                     current: data.ENERGY.Current,
-                    raw: req.body.data
+                    raw: reconstructed_json
                 }
             })
-
-
+            
+            let data_cid = await generateCID(reconstructed_json);
+            
             res.send("OK")
+            await mintInfo(device.address,device.machineId,data_cid,"MH",data.Time,data.ENERGY.Total);
 
         }
 

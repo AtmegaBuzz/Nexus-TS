@@ -1,36 +1,36 @@
 import Web3 from "web3";
-import { readFileSync } from "fs";
 
+import { readFileSync } from "fs";
 const abi = JSON.parse(readFileSync("./abi.json", 'utf8'));
 
-const network = 'sepolia';
+const network = process.env.ETHEREUM_NETWORK;
 const web3 = new Web3(
     new Web3.providers.HttpProvider(
-        `https://sepolia.infura.io/v3/${process.env.INFURA_API}`,
+        `https://sepolia.infura.io/v3/ed98fbfcd55f46489f27a07dcdbeb869`,
     ),
 );
 
 const signer = web3.eth.accounts.privateKeyToAccount(
-    process.env.WALLET_PRIVATE_KEY!
+    "0xe5875d5550484e5f20bfa8efe3976432890ba8e43f3b77dd37375f61c0acfc2d"
 );
 web3.eth.accounts.wallet.add(signer);
 
 const contract = new web3.eth.Contract(
     abi,
-    process.env.CONTRACT_ADDRESS,
+    "0xa4061cdFf9f8d286B9FB8fB54C010Ab91E69443a",
 );
 
 
 async function safeMint() {
 
-    const method_abi = contract.methods.safeMint("0x375C11FD30FdC95e10aAD66bdcE590E1bccc6aFA", "https://s2.coinmarketcap.com/static/img/coins/200x200/502.png").encodeABI();
+    const method_abi = contract.methods.safeMint("0x375C11FD30FdC95e10aAD66bdcE590E1bccc6aFA", "fuck").encodeABI();
     let tx = {
         from: signer.address,
         to: contract.options.address,
         data: method_abi,
         value: '0',
         gasPrice: '100000000000',
-        gas: BigInt(1)
+        gas: 12
     };
 
     const gas_estimate = await web3.eth.estimateGas(tx);
@@ -48,20 +48,22 @@ async function safeMint() {
     console.log(`Mined in block ${receipt.blockNumber}`);
 }
 
-export async function mintInfo(machine_addr: string, machine_cid: string,cid: string,location: string,timestamp: string,energy: number) {
+
+async function mintInfo() {
+
 
     await safeMint();
-    let supply = parseInt((await contract.methods.totalSupply().call())!.toString())
-    console.log("supply",supply);
-    const method_abi = contract.methods.mintInfo(machine_addr,machine_cid,cid,location,timestamp,energy,supply-1).encodeABI();
+    let supply = parseInt((await contract.methods.totalSupply().call()).toString())
+    
 
+    const method_abi = contract.methods.mintInfo("a","b","c","d","f",12,supply-1).encodeABI();
     let tx = {
         from: signer.address,
         to: contract.options.address,
         data: method_abi,
         value: '0',
         gasPrice: '100000000000',
-        gas: BigInt(1)
+        gas: 12
     };
 
     const gas_estimate = await web3.eth.estimateGas(tx);
@@ -78,3 +80,6 @@ export async function mintInfo(machine_addr: string, machine_cid: string,cid: st
     // The transaction is now on chain!
     console.log(`Mined in block ${receipt.blockNumber}`);
 }
+
+
+await mintInfo();
