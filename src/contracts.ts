@@ -23,7 +23,7 @@ const contract = new web3.eth.Contract(
 
 async function safeMint() {
 
-    const method_abi = contract.methods.safeMint("0x375C11FD30FdC95e10aAD66bdcE590E1bccc6aFA", "https://s2.coinmarketcap.com/static/img/coins/200x200/502.png").encodeABI();
+    const method_abi = contract.methods.safeMint("0x375C11FD30FdC95e10aAD66bdcE590E1bccc6aFA", "https://jade-content-mollusk-671.mypinata.cloud/ipfs/QmeQXPB8y3mXeZEcEHCh6sv5pWgbvNkJMHs5bgAaRvBPAT").encodeABI();
     let tx = {
         from: signer.address,
         to: contract.options.address,

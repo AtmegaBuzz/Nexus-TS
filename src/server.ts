@@ -3,7 +3,8 @@ import * as bodyParser from "body-parser";
 import cors = require("cors");
 
 import notarizeRouter from "./routes/notarize.router";
-import deviceROuter from "./routes/device.route";
+import deviceRouter from "./routes/device.route";
+import authRouter from "./routes/auth.route";
 
 const app: Express = express();
 const PORT = 3001;
@@ -20,7 +21,9 @@ app.use(cors());
 
 // routes
 app.use("/api/notarize", notarizeRouter);
-app.use("/api/device", deviceROuter);
+app.use("/api/device", deviceRouter);
+app.use("/api/auth", authRouter);
+
 
 app.listen(PORT, () => {
   console.log(`Server running on port 3001`);
