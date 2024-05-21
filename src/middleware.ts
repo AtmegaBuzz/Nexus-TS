@@ -9,8 +9,8 @@ export default function authMiddleware(req: Request,res: Response,next: NextFunc
             return res.status(401).json({ error: 'Access denied' });
         }
     
-        const decode = jwt.verify(token, process.env.SECRET_KEY!);
-        req.userId = decode.userId;
+        const decode: any = jwt.verify(token, process.env.SECRET_KEY!);
+        req.body.userId = decode.userId;
     
         next();
     }
