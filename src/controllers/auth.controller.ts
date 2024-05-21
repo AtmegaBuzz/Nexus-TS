@@ -1,39 +1,26 @@
 import { Request, Response } from "express"
 import { prisma } from "../Prisma";
-
+import * as jwt from "jsonwebtoken";
 
 export const login = async (req: Request, res: Response) => {
 
     try {
 
-        const address = req.query.address;
-
-        let resp = await fetch("https://testnet-api.rddl.io/planetmint/asset/address/plmnt1sqlv2x8rjvxdjv87uh5l47erpazx8umwhd7t90/3", {
-            method: "GET"
+        const {email,password} = req.body;
+        const user = await prisma.user.findFirst({
+            where:{
+                email,
+                password
+            }
         })
 
-        let js = await resp.json();
-
-        console.log(js)
-
-        if (typeof(address) === typeof("")) {
-            let device = await prisma.device.findFirst({
-                where: {
-                    address: address?.toString()
-                },
-                include: {
-                    data: true
-                }
-            });
-            
-
-            res.send(device).status(200)
+        if (!user) {
+            return res.status(401).json("Wrong credentials");
         }
-        
-        else {
-            res.send("Device Address not passed").status(400);
-        }
-            
+
+        const token = jwt.sign({userId: user.id}, process.env.SECRET_KEY!,{expiresIn: '100h'})
+        res.status(200).json({ token });
+
     } catch (e: any) {
         console.log(e)
         res.send("Something went wrong").status(500)
