@@ -9,13 +9,16 @@ import authRouter from "./routes/auth.route";
 const app: Express = express();
 const PORT = 3001;
 
-app.use(
-  bodyParser.json({
-    verify: (req, res, buf) => {
-      console.log(buf.toString());
-    },
-  })
-);
+// app.use(
+//   bodyParser.json({
+//     verify: (req, res, buf) => {
+//       console.log(buf.toString());
+//     },
+//   })
+// );
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors());
 
