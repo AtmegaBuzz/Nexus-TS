@@ -38,7 +38,7 @@ export const me = async (req: Request, res: Response) => {
     try {
 
         const {userId} = req.body;
-        const user = await prisma.user.findFirst({
+        const user = await prisma.user.findFirstOrThrow({
             where:{
                 id: userId
             }
