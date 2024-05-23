@@ -2,7 +2,7 @@ import { Request, Response } from "express"
 import { prisma } from "../Prisma";
 import { Decimal } from "@prisma/client/runtime/library";
 import { generateCID } from "../utils";
-import { mintInfo } from "../contracts";
+import { safeMint } from "../contracts";
 
 
 interface NotarizedDataInterface {
@@ -30,14 +30,13 @@ export const offchainNotarization = async (req: Request, res: Response) => {
 
     try {
         const address = req.body.address;
-        const data = req.body.data;
-        let reconstructed_json = `{"Time":"${data.Time}","ANALOG":{"Temperature1":${data.ANALOG.Temperature1.toFixed(1)}},"ENERGY":{"TotalStartTime":"${data.ENERGY.TotalStartTime}","Total":${data.ENERGY.Total.toFixed(3)},"Yesterday":${data.ENERGY.Yesterday.toFixed(3)},"Today":${data.ENERGY.Today.toFixed(3)},"Power":${data.ENERGY.Power},"ApparentPower":${data.ENERGY.ApparentPower},"ReactivePower":${data.ENERGY.ApparentPower},"Factor":${data.ENERGY.Factor.toFixed(2)},"Voltage":${data.ENERGY.Voltage},"Current":${data.ENERGY.Current.toFixed(3)}},"TempUnit":"C"}`
+        const data = JSON.parse(req.body.data);
+        let reconstructed_json = `{"Time":"${data.Time}","ENERGY":{"TotalStartTime":"${data.ENERGY.TotalStartTime}","Total":${data.ENERGY.Total.toFixed(3)},"Yesterday":${data.ENERGY.Yesterday.toFixed(3)},"Today":${data.ENERGY.Today.toFixed(3)},"Power":${data.ENERGY.Power},"ApparentPower":${data.ENERGY.ApparentPower},"ReactivePower":${data.ENERGY.ApparentPower},"Factor":${data.ENERGY.Factor.toFixed(2)},"Voltage":${data.ENERGY.Voltage},"Current":${data.ENERGY.Current.toFixed(3)}},"TempUnit":"C"}`
         const device = await prisma.device.findFirst({
             where: {
                 address: address
             }
         })
-        
         if (device === null) {
             res.send("DEVICE DOESN'T EXISTS")
         }
@@ -48,7 +47,7 @@ export const offchainNotarization = async (req: Request, res: Response) => {
                 data: {
                     deviceId: device?.id!,
                     time: new Date(data.Time.toString()),
-                    temprature: data.ANALOG.Temperature1,
+                    temprature: "0",
                     totalEnergy: data.ENERGY.Total,
                     today: data.ENERGY.Today,
                     power: data.ENERGY.Power,
@@ -64,7 +63,7 @@ export const offchainNotarization = async (req: Request, res: Response) => {
             let data_cid = await generateCID(reconstructed_json);
             
             res.send("OK")
-            await mintInfo(device.address,device.machineId,data_cid,"MH",data.Time,data.ENERGY.Total);
+            await safeMint(device.address,device.machineId,data_cid,"MH",data.Time,data.ENERGY.Total);
 
         }
 
@@ -101,7 +100,8 @@ export const verifyNotarizedData = async (req: Request, res: Response) => {
         const address = req.body.address?.toString();
 
         let data: NotarizedData = JSON.parse(req.body.data);
-        let reconstructed_json = `{"Time":"${data.Time}","ANALOG":{"Temperature1":${data.ANALOG.Temperature1.toFixed(1)}},"ENERGY":{"TotalStartTime":"${data.ENERGY.TotalStartTime}","Total":${data.ENERGY.Total.toFixed(3)},"Yesterday":${data.ENERGY.Yesterday.toFixed(3)},"Today":${data.ENERGY.Today.toFixed(3)},"Power":${data.ENERGY.Power},"ApparentPower":${data.ENERGY.ApparentPower},"ReactivePower":${data.ENERGY.ApparentPower},"Factor":${data.ENERGY.Factor.toFixed(2)},"Voltage":${data.ENERGY.Voltage},"Current":${data.ENERGY.Current.toFixed(3)}},"TempUnit":"C"}`
+        let reconstructed_json = `{"Time":"${data.Time}","ENERGY":{"TotalStartTime":"${data.ENERGY.TotalStartTime}","Total":${data.ENERGY.Total.toFixed(3)},"Yesterday":${data.ENERGY.Yesterday.toFixed(3)},"Today":${data.ENERGY.Today.toFixed(3)},"Power":${data.ENERGY.Power},"ApparentPower":${data.ENERGY.ApparentPower},"ReactivePower":${data.ENERGY.ApparentPower},"Factor":${data.ENERGY.Factor.toFixed(2)},"Voltage":${data.ENERGY.Voltage},"Current":${data.ENERGY.Current.toFixed(3)}},"TempUnit":"C"}`
+
         console.log(reconstructed_json)
         let data_cid = await generateCID(reconstructed_json);
         console.log(data_cid)

@@ -9,21 +9,11 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 
-contract Carbon is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Pausable, Ownable, ERC721Burnable {
+contract Blockvolt is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Pausable, Ownable, ERC721Burnable {
     uint256 private _nextTokenId;
-    mapping (uint256 tokenId => Info) private _infos;
-
-    struct Info {
-        string machine_addr;
-        string machine_cid;
-        string cid;
-        string location;
-        string timestamp;
-        uint energy;
-    }
 
     constructor(address initialOwner)
-        ERC721("Carbon", "CRB")
+        ERC721("Blockvolt", "BVLT")
         Ownable(initialOwner)
     {}
 
@@ -39,35 +29,6 @@ contract Carbon is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Pausable, O
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
-    }
-
-    function mintInfo(
-        string memory machine_addr,
-        string memory machine_cid,
-        string memory cid,
-        string memory location,
-        string memory timestamp,
-        uint energy,
-        uint256 tokenId
-    ) public{
-
-        _requireOwned(tokenId);
-
-        Info memory info = _infos[tokenId];
-        
-        require(keccak256(abi.encodePacked(info.cid)) == keccak256(abi.encodePacked("")), "Token Info already exists");
-
-        _infos[tokenId] = Info(machine_addr,machine_cid,cid,location,timestamp,energy);
-    }
-
-
-    function getInfo(uint256 tokenId) public view returns (string memory,string memory,string memory,string memory,string memory,uint) {
-
-        _requireOwned(tokenId);
-        Info memory info = _infos[tokenId];
-
-        return (info.machine_addr,info.machine_cid,info.cid,info.location,info.timestamp,info.energy);
-
     }
 
 
