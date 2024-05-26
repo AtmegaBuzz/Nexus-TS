@@ -56,27 +56,27 @@ export const getDeviceDetail = async (req: Request, res: Response) => {
     }
 }
 
-export const addDevice = async (req: Request, res: Response) => {
+// export const addDevice = async (req: Request, res: Response) => {
 
-    try {
+//     try {
 
-        console.log(req.body)
+//         console.log(req.body)
 
-        let device = await prisma.device.create({
-            data: {
-                address: req.body.address,
-                machineId: req.body.machineId,
-                userId: req.body.userId
-            }
-        })
+//         let device = await prisma.device.create({
+//             data: {
+//                 address: req.body.address,
+//                 machineId: req.body.machineId,
+//                 userId: req.body.userId
+//             }
+//         })
 
-        res.status(201).json(device)
+//         res.status(201).json(device)
             
-    } catch (e: any) {
-        console.log(e)
-        res.send("Something went wrong").status(500)
-    }
-}
+//     } catch (e: any) {
+//         console.log(e)
+//         res.send("Something went wrong").status(500)
+//     }
+// }
 
 export const deleteDevice = async (req: Request, res: Response) => {
 

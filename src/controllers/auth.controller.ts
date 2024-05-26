@@ -1,6 +1,7 @@
 import { Request, Response } from "express"
 import { prisma } from "../Prisma";
 import * as jwt from "jsonwebtoken";
+import { randomUUID } from "crypto";
 
 export const login = async (req: Request, res: Response) => {
 
@@ -44,9 +45,28 @@ export const me = async (req: Request, res: Response) => {
             }
         })
 
-        if (!user) {
-            return res.status(401).json("Wrong credentials");
-        }
+        res.status(200).json(user);
+
+    } catch (e: any) {
+        console.log(e)
+        res.send("Something went wrong").status(500)
+    }
+}
+
+
+export const setAuthToken = async (req: Request, res: Response) => {
+
+    try {
+
+        const {userId} = req.body;
+        const user = await prisma.user.update({
+            where:{
+                id: userId
+            },
+            data: {
+                machineAuthToken: randomUUID().toString(),
+            }
+        })
 
         res.status(200).json(user);
 

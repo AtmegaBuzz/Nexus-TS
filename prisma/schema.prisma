@@ -21,6 +21,7 @@ model User{
   name String?
   password String
 
+  machineAuthToken String?
   devices Device[]
 }
 
@@ -31,6 +32,18 @@ model Device{
 
   user User @relation(fields: [userId], references: [id])
   userId Int 
+
+
+  // METADATA
+
+  // location 
+  country String
+  region String
+  city String
+
+  category String
+  manufacturer String
+
 
   data NotarizedData[]
 }

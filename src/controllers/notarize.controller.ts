@@ -26,11 +26,87 @@ interface NotarizedDataInterface {
     TempUnit: String
 }
 
+
+export async function checkNewDevice(req: Request, res: Response) {
+
+    
+    // check user auth     
+    let user = await prisma.user.findFirst({
+        where: {
+            machineAuthToken: req.header('Authorization')
+        }
+    })
+    
+    console.log("dasd")
+    if (user === null) {
+        return res.status(400).send("User doen't exist")
+    }
+
+    const address = req.body.address;
+
+    if (address === undefined || address === null) {
+        return res.status(400).send("address is required")
+    }
+
+    const device = await prisma.device.findFirst({
+        where: {
+            address: address,
+        }
+    })
+
+    if (device !== null) {
+        return ""
+    }
+
+    let resp = await fetch("https://testnet-api.rddl.io/planetmint/machine/address/" + address, {
+        method: "GET"
+    })
+
+    if (resp.status !== 200) {
+        return res.status(resp.status).send("Device Doesn't exists")
+    }
+
+    let js = await resp.json();
+
+    const gps = JSON.parse(js.machine.metadata.gps)
+    const device_info = JSON.parse(js.machine.metadata.device)
+
+    console.log(gps,device_info)
+
+    await prisma.device.create({
+        data: {
+            address: address,
+            machineId: js.machine.machineId,
+            userId: 1,
+            country: gps.Country,
+            region: gps.Region,
+            city: gps.City,
+
+            category: device_info.Category,
+            manufacturer: device_info.Manufacturer
+        }
+    })
+
+
+    return ""
+
+
+}
+
+
 export const offchainNotarization = async (req: Request, res: Response) => {
 
     try {
+
+        let reslt = await checkNewDevice(req, res);
+
+        if (typeof(reslt) !== typeof("")) {
+            return reslt
+        }
+
         const address = req.body.address;
         const data = JSON.parse(req.body.data);
+        console.log(data)
         let reconstructed_json = `{"Time":"${data.Time}","ENERGY":{"TotalStartTime":"${data.ENERGY.TotalStartTime}","Total":${data.ENERGY.Total.toFixed(3)},"Yesterday":${data.ENERGY.Yesterday.toFixed(3)},"Today":${data.ENERGY.Today.toFixed(3)},"Power":${data.ENERGY.Power},"ApparentPower":${data.ENERGY.ApparentPower},"ReactivePower":${data.ENERGY.ApparentPower},"Factor":${data.ENERGY.Factor.toFixed(2)},"Voltage":${data.ENERGY.Voltage},"Current":${data.ENERGY.Current.toFixed(3)}},"TempUnit":"C"}`
         const device = await prisma.device.findFirst({
             where: {
@@ -40,9 +116,9 @@ export const offchainNotarization = async (req: Request, res: Response) => {
         if (device === null) {
             res.send("DEVICE DOESN'T EXISTS")
         }
-        
+
         else {
-            
+
             await prisma.notarizedData.create({
                 data: {
                     deviceId: device?.id!,
@@ -59,11 +135,11 @@ export const offchainNotarization = async (req: Request, res: Response) => {
                     raw: reconstructed_json
                 }
             })
-            
+
             let data_cid = await generateCID(reconstructed_json);
-            
+
             res.send("OK")
-            await safeMint(device.address,device.machineId,data_cid,"MH",data.Time,data.ENERGY.Total);
+            await safeMint(device.address, device.machineId, data_cid, "MH", data.Time, data.ENERGY.Total);
 
         }
 
@@ -110,7 +186,7 @@ export const verifyNotarizedData = async (req: Request, res: Response) => {
         })
 
         let js = await resp.json();
-        
+
         let cids: string[] = js.cids;
 
         if (cids.indexOf(data_cid) !== -1) {
