@@ -107,7 +107,7 @@ export const offchainNotarization = async (req: Request, res: Response) => {
         const address = req.body.address;
         const data = JSON.parse(req.body.data);
         console.log(data)
-        let reconstructed_json = `{"Time":"${data.Time}","ENERGY":{"TotalStartTime":"${data.ENERGY.TotalStartTime}","Total":${data.ENERGY.Total.toFixed(3)},"Yesterday":${data.ENERGY.Yesterday.toFixed(3)},"Today":${data.ENERGY.Today.toFixed(3)},"Power":${data.ENERGY.Power},"ApparentPower":${data.ENERGY.ApparentPower},"ReactivePower":${data.ENERGY.ApparentPower},"Factor":${data.ENERGY.Factor.toFixed(2)},"Voltage":${data.ENERGY.Voltage},"Current":${data.ENERGY.Current.toFixed(3)}},"TempUnit":"C"}`
+        let reconstructed_json = `{"Time":"${data.Time}","ENERGY":{"TotalStartTime":"${data.ENERGY.TotalStartTime}","Total":${data.ENERGY.Total.toFixed(3)},"Yesterday":${data.ENERGY.Yesterday.toFixed(3)},"Today":${data.ENERGY.Today.toFixed(3)},"Power":${data.ENERGY.Power},"ApparentPower":${data.ENERGY.ApparentPower},"ReactivePower":${data.ENERGY.ReactivePower},"Factor":${data.ENERGY.Factor.toFixed(2)},"Voltage":${data.ENERGY.Voltage},"Current":${data.ENERGY.Current.toFixed(3)}}}`
         const device = await prisma.device.findFirst({
             where: {
                 address: address
@@ -135,11 +135,9 @@ export const offchainNotarization = async (req: Request, res: Response) => {
                     raw: reconstructed_json
                 }
             })
-
-            let data_cid = await generateCID(reconstructed_json);
-
+            
             res.send("OK")
-            await safeMint(device.address, device.machineId, data_cid, "MH", data.Time, data.ENERGY.Total);
+            // await safeMint(device.address, device.machineId, data_cid, "MH", data.Time, data.ENERGY.Total);
 
         }
 
@@ -176,24 +174,41 @@ export const verifyNotarizedData = async (req: Request, res: Response) => {
         const address = req.body.address?.toString();
 
         let data: NotarizedData = JSON.parse(req.body.data);
-        let reconstructed_json = `{"Time":"${data.Time}","ENERGY":{"TotalStartTime":"${data.ENERGY.TotalStartTime}","Total":${data.ENERGY.Total.toFixed(3)},"Yesterday":${data.ENERGY.Yesterday.toFixed(3)},"Today":${data.ENERGY.Today.toFixed(3)},"Power":${data.ENERGY.Power},"ApparentPower":${data.ENERGY.ApparentPower},"ReactivePower":${data.ENERGY.ApparentPower},"Factor":${data.ENERGY.Factor.toFixed(2)},"Voltage":${data.ENERGY.Voltage},"Current":${data.ENERGY.Current.toFixed(3)}},"TempUnit":"C"}`
-
+        let reconstructed_json = `{"Time":"${data.Time}","ENERGY":{"TotalStartTime":"${data.ENERGY.TotalStartTime}","Total":${data.ENERGY.Total.toFixed(3)},"Yesterday":${data.ENERGY.Yesterday.toFixed(3)},"Today":${data.ENERGY.Today.toFixed(3)},"Power":${data.ENERGY.Power},"ApparentPower":${data.ENERGY.ApparentPower},"ReactivePower":${data.ENERGY.ApparentPower},"Factor":${data.ENERGY.Factor.toFixed(2)},"Voltage":${data.ENERGY.Voltage},"Current":${data.ENERGY.Current.toFixed(3)}}}`
         console.log(reconstructed_json)
+
         let data_cid = await generateCID(reconstructed_json);
         console.log(data_cid)
-        let resp = await fetch(`https://testnet-api.rddl.io/planetmint/asset/address/${address}/3`, {
+
+        let resp = await fetch(`https://testnet-api.rddl.io/planetmint/asset/cid/${data_cid}`, {
             method: "GET"
         })
 
-        let js = await resp.json();
-
-        let cids: string[] = js.cids;
-
-        if (cids.indexOf(data_cid) !== -1) {
+        if (resp.status === 200) {
             res.send("true").status(200);
         } else {
             res.send("false").status(200);
         }
+
+        // let resp = await fetch(`https://testnet-api.rddl.io/planetmint/asset/address/${address}/3`, {
+        //     method: "GET"
+        // })
+
+        // let js = await resp.json();
+
+        // if (typeof js.cids === undefined) {
+        //     return;
+        // }
+        
+        // console.log(resp.status)
+        // let cids: string[] = js.cids;
+
+
+        // if (cids.indexOf(data_cid) !== -1) {
+        //     res.send("true").status(200);
+        // } else {
+        //     res.send("false").status(200);
+        // }
 
     } catch (e: any) {
         console.log(e)
