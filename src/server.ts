@@ -7,7 +7,7 @@ import deviceRouter from "./routes/device.route";
 import authRouter from "./routes/auth.route";
 
 const app: Express = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 4000;
 
 // app.use(
 //   bodyParser.json({
