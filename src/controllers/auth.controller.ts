@@ -28,7 +28,7 @@ export const login = async (req: Request, res: Response) => {
         }
 
         const token = jwt.sign({userId: user.id}, process.env.SECRET_KEY!,{expiresIn: '100h'})
-        res.status(200).json({ token });
+        res.status(200).json({ token, authToken: user.machineAuthToken });
 
     } catch (e: any) {
         console.log(e)
