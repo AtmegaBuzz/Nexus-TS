@@ -119,6 +119,11 @@ export const offchainNotarization = async (req: Request, res: Response) => {
 
         else {
 
+            let user = await prisma.user.findFirst({
+                where: {
+                    id: device.userId
+                }
+            })
             await prisma.notarizedData.create({
                 data: {
                     deviceId: device?.id!,
@@ -135,9 +140,14 @@ export const offchainNotarization = async (req: Request, res: Response) => {
                     raw: reconstructed_json
                 }
             })
-            
+            let data_cid = await generateCID(reconstructed_json);
+
             res.send("OK")
-            // await safeMint(device.address, device.machineId, data_cid, "MH", data.Time, data.ENERGY.Total);
+            if (typeof user?.publicKey === 'string') {
+                await safeMint(user?.publicKey,device.address, device.machineId, data_cid, "MH", data.Time, data.ENERGY.Total);
+            } else {
+                console.log("no pub key")
+            }
 
         }
 
@@ -209,6 +219,28 @@ export const verifyNotarizedData = async (req: Request, res: Response) => {
         // } else {
         //     res.send("false").status(200);
         // }
+
+    } catch (e: any) {
+        console.log(e)
+        res.send("Something went wrong").status(500)
+    }
+}
+
+
+
+export const cidExists = async (req: Request, res: Response) => {
+
+    try {
+
+        let resp = await fetch(`https://testnet-api.rddl.io/planetmint/asset/cid/${req.query.cid}`, {
+            method: "GET"
+        })
+        console.log(resp.status)
+        if (resp.status === 200) {
+            res.send("true").status(200);
+        } else {
+            res.send("false").status(404);
+        }
 
     } catch (e: any) {
         console.log(e)

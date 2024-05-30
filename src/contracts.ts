@@ -64,12 +64,12 @@ async function uploadPinata(machine_addr: string, machine_cid: string, cid: stri
     }
 }
 
-export async function safeMint(machine_addr: string, machine_cid: string, cid: string, location: string, timestamp: string, energy: number) {
+export async function safeMint(wallet_address: string, machine_addr: string, machine_cid: string, cid: string, location: string, timestamp: string, energy: number) {
 
 
     let ipfshash = await uploadPinata(machine_addr,machine_cid,cid,location,timestamp,energy);
 
-    const method_abi = contract.methods.safeMint("0x375C11FD30FdC95e10aAD66bdcE590E1bccc6aFA", `ipfs://${ipfshash}`).encodeABI();
+    const method_abi = contract.methods.safeMint(wallet_address, `ipfs://${ipfshash}`).encodeABI();
     let tx = {
         from: signer.address,
         to: contract.options.address,

@@ -21,6 +21,7 @@ model User{
   name String?
   password String
 
+  publicKey String?
   machineAuthToken String?
   devices Device[]
 }

@@ -2,6 +2,7 @@ import { Request, Response } from "express"
 import { prisma } from "../Prisma";
 import * as jwt from "jsonwebtoken";
 import { randomUUID } from "crypto";
+import { hash } from "../utils";
 
 export const login = async (req: Request, res: Response) => {
 
@@ -13,10 +14,12 @@ export const login = async (req: Request, res: Response) => {
             return res.status(400).json("Invalid Request, need email and password")
         }
 
+        let passHash = await hash(password);
+
         const user = await prisma.user.findFirst({
             where:{
                 email,
-                password
+                password: passHash
             }
         })
 
@@ -26,6 +29,46 @@ export const login = async (req: Request, res: Response) => {
 
         const token = jwt.sign({userId: user.id}, process.env.SECRET_KEY!,{expiresIn: '100h'})
         res.status(200).json({ token });
+
+    } catch (e: any) {
+        console.log(e)
+        res.send("Something went wrong").status(500)
+    }
+}
+
+export const register = async (req: Request, res: Response) => {
+
+    try {
+
+        const {name,email,password,publicKey} = req.body;
+        console.log(name,password)
+        if (email === undefined || password === undefined ) {
+            return res.status(400).json("Invalid Request, need email and password")
+        }
+
+        let userExists = await prisma.user.findFirst({
+            where: {
+                email,
+            }
+        })
+
+        if (userExists) {
+            return res.status(400).json("User with this email already exists")
+        }
+
+        let passHash = await hash(password);
+        
+        await prisma.user.create({
+            data:{
+                name,
+                email,
+                password: passHash,
+                machineAuthToken: randomUUID().toString(),
+                publicKey
+            }
+        })        
+
+        res.status(201).json();
 
     } catch (e: any) {
         console.log(e)

@@ -82,6 +82,12 @@ export const deleteDevice = async (req: Request, res: Response) => {
 
     try {
 
+        await prisma.notarizedData.deleteMany({
+            where: {
+                deviceId: parseInt(req.body.id)
+            }
+        })
+
         await prisma.device.delete({
             where: {
                 id: parseInt(req.body.id),
