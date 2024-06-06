@@ -188,7 +188,8 @@ export const offchainNotarization = async (req: Request, res: Response) => {
             console.log(data_cid)
 
             res.send("OK")
-            if (typeof user?.publicKey === 'string' && device.meter_phase === "null") {
+
+            if (typeof user?.publicKey === 'string' && device.meter_phase !== "3") {
                 await safeMint(user?.publicKey,device.address, device.machineId, data_cid, "MH", data.Time, data.ENERGY.Total);
             } else {
                 console.log("no pub key")
