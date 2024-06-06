@@ -41,10 +41,10 @@ model Device{
   country String
   region String
   city String
-
+  
   category String
   manufacturer String
-
+  meter_phase String?
 
   data NotarizedData[]
 }
@@ -56,16 +56,47 @@ model NotarizedData{
   device Device @relation(fields: [deviceId], references: [id])
   deviceId Int
 
-  time DateTime
-  temprature Decimal
+  meter_type String?
 
-  totalEnergy Decimal
-  today Decimal
-  power Int
-  apparentPower Int
-  reactivePower Int 
-  factor Decimal
-  voltage Int
-  current Decimal
+  time DateTime
+  temprature Decimal?
+
+  totalEnergy Decimal?
+  today Decimal?
+  power Int?
+  apparentPower Int?
+  reactivePower Int?
+  factor Decimal?
+  voltage Int?
+  current Decimal?
+
+
+  // elite 440
+  voltage_phase_1 Decimal?
+  voltage_phase_2 Decimal?
+  voltage_phase_3 Decimal?
+  voltage_phase_avg Decimal?
+
+  current_phase_1 Decimal?
+  current_phase_2 Decimal?
+  current_phase_3 Decimal?
+  current_phase_avg Decimal?
+
+  power_factor_phase_1 Decimal?
+  power_factor_phase_2 Decimal?
+  power_factor_phase_3 Decimal?
+  power_factor_phase_avg Decimal?
+
+  active_power_phase_1 Decimal?
+  active_power_phase_2 Decimal?
+  active_power_phase_3 Decimal?
+  active_power_phase_avg Decimal?
+
+  apparent_power_phase_1 Decimal?
+  apparent_power_phase_2 Decimal?
+  apparent_power_phase_3 Decimal?
+  apparent_power_phase_avg Decimal?
+
+
   raw String?
 }

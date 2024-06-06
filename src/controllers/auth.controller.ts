@@ -9,6 +9,7 @@ export const login = async (req: Request, res: Response) => {
     try {
 
         const {email,password} = req.body;
+        console.log(email)
         console.log(email,password,req.body)
         if (email === undefined || password === undefined ) {
             return res.status(400).json("Invalid Request, need email and password")

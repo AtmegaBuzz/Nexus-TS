@@ -37,12 +37,12 @@ export async function checkNewDevice(req: Request, res: Response) {
         }
     })
     
-    console.log("dasd")
     if (user === null) {
         return res.status(400).send("User doen't exist")
     }
 
     const address = req.body.address;
+    const meter_phase = req.body.meter
 
     if (address === undefined || address === null) {
         return res.status(400).send("address is required")
@@ -81,7 +81,7 @@ export async function checkNewDevice(req: Request, res: Response) {
             country: gps.Country,
             region: gps.Region,
             city: gps.City,
-
+            meter_phase: meter_phase,
             category: device_info.Category,
             manufacturer: device_info.Manufacturer
         }
@@ -106,8 +106,8 @@ export const offchainNotarization = async (req: Request, res: Response) => {
 
         const address = req.body.address;
         const data = JSON.parse(req.body.data);
-        console.log(data)
-        let reconstructed_json = `{"Time":"${data.Time}","ENERGY":{"TotalStartTime":"${data.ENERGY.TotalStartTime}","Total":${data.ENERGY.Total.toFixed(3)},"Yesterday":${data.ENERGY.Yesterday.toFixed(3)},"Today":${data.ENERGY.Today.toFixed(3)},"Power":${data.ENERGY.Power},"ApparentPower":${data.ENERGY.ApparentPower},"ReactivePower":${data.ENERGY.ReactivePower},"Factor":${data.ENERGY.Factor.toFixed(2)},"Voltage":${data.ENERGY.Voltage},"Current":${data.ENERGY.Current.toFixed(3)}}}`
+
+
         const device = await prisma.device.findFirst({
             where: {
                 address: address
@@ -116,38 +116,83 @@ export const offchainNotarization = async (req: Request, res: Response) => {
         if (device === null) {
             res.send("DEVICE DOESN'T EXISTS")
         }
-
+        
         else {
-
+            
             let user = await prisma.user.findFirst({
                 where: {
                     id: device.userId
                 }
             })
-            await prisma.notarizedData.create({
-                data: {
-                    deviceId: device?.id!,
-                    time: new Date(data.Time.toString()),
-                    temprature: "0",
-                    totalEnergy: data.ENERGY.Total,
-                    today: data.ENERGY.Today,
-                    power: data.ENERGY.Power,
-                    apparentPower: data.ENERGY.ApparentPower,
-                    reactivePower: data.ENERGY.ReactivePower,
-                    factor: data.ENERGY.Factor,
-                    voltage: data.ENERGY.Voltage,
-                    current: data.ENERGY.Current,
-                    raw: reconstructed_json
-                }
-            })
+            
+            let reconstructed_json = "";
+
+            if (req.body["meter"] === "3") {
+                
+
+                reconstructed_json = req.body.data
+                await prisma.notarizedData.create({
+                    data: {
+                        deviceId: device?.id!,
+                        time: new Date(),
+                        voltage_phase_1: data.voltage.voltage_phase_1,
+                        voltage_phase_2: data.voltage.voltage_phase_2,
+                        voltage_phase_3: data.voltage.voltage_phase_3,
+                        voltage_phase_avg: data.voltage.voltage_phase_avg,
+
+                        current_phase_1: data.current.current_phase_1,
+                        current_phase_2: data.current.current_phase_2,
+                        current_phase_3: data.current.current_phase_3,
+                        current_phase_avg: data.current.current_phase_avg,
+
+                        power_factor_phase_1: data.power_factor.power_factor_phase_1,
+                        power_factor_phase_2: data.power_factor.power_factor_phase_2,
+                        power_factor_phase_3: data.power_factor.power_factor_phase_3,
+                        power_factor_phase_avg: data.power_factor.power_factor_phase_avg,
+
+                        active_power_phase_1: data.active_power.active_power_phase_1,
+                        active_power_phase_2: data.active_power.active_power_phase_2,
+                        active_power_phase_3: data.active_power.active_power_phase_3,
+                        active_power_phase_avg: data.active_power.active_power_phase_avg,
+
+                        apparent_power_phase_1: data.apparent_power.apparent_power_phase_1,
+                        apparent_power_phase_2: data.apparent_power.apparent_power_phase_2,
+                        apparent_power_phase_3: data.apparent_power.apparent_power_phase_3,
+                        apparent_power_phase_avg: data.apparent_power.apparent_power_phase_avg,
+
+                        raw: reconstructed_json
+                    }
+                })
+            }
+
+            else {
+                reconstructed_json = `{"Time":"${data.Time}","ENERGY":{"TotalStartTime":"${data.ENERGY.TotalStartTime}","Total":${data.ENERGY.Total.toFixed(3)},"Yesterday":${data.ENERGY.Yesterday.toFixed(3)},"Today":${data.ENERGY.Today.toFixed(3)},"Power":${data.ENERGY.Power},"ApparentPower":${data.ENERGY.ApparentPower},"ReactivePower":${data.ENERGY.ReactivePower},"Factor":${data.ENERGY.Factor.toFixed(2)},"Voltage":${data.ENERGY.Voltage},"Current":${data.ENERGY.Current.toFixed(3)}}}`
+                await prisma.notarizedData.create({
+                    data: {
+                        deviceId: device?.id!,
+                        time: new Date(data.Time.toString()),
+                        temprature: "0",
+                        totalEnergy: data.ENERGY.Total,
+                        today: data.ENERGY.Today,
+                        power: data.ENERGY.Power,
+                        apparentPower: data.ENERGY.ApparentPower,
+                        reactivePower: data.ENERGY.ReactivePower,
+                        factor: data.ENERGY.Factor,
+                        voltage: data.ENERGY.Voltage,
+                        current: data.ENERGY.Current,
+                        raw: reconstructed_json
+                    }
+                })
+            }
             let data_cid = await generateCID(reconstructed_json);
+            console.log(data_cid)
 
             res.send("OK")
-            if (typeof user?.publicKey === 'string') {
-                await safeMint(user?.publicKey,device.address, device.machineId, data_cid, "MH", data.Time, data.ENERGY.Total);
-            } else {
-                console.log("no pub key")
-            }
+            // if (typeof user?.publicKey === 'string') {
+            //     await safeMint(user?.publicKey,device.address, device.machineId, data_cid, "MH", data.Time, data.ENERGY.Total);
+            // } else {
+            //     console.log("no pub key")
+            // }
 
         }
 
@@ -184,10 +229,11 @@ export const verifyNotarizedData = async (req: Request, res: Response) => {
         const address = req.body.address?.toString();
 
         let data: NotarizedData = JSON.parse(req.body.data);
-        let reconstructed_json = `{"Time":"${data.Time}","ENERGY":{"TotalStartTime":"${data.ENERGY.TotalStartTime}","Total":${data.ENERGY.Total.toFixed(3)},"Yesterday":${data.ENERGY.Yesterday.toFixed(3)},"Today":${data.ENERGY.Today.toFixed(3)},"Power":${data.ENERGY.Power},"ApparentPower":${data.ENERGY.ApparentPower},"ReactivePower":${data.ENERGY.ReactivePower},"Factor":${data.ENERGY.Factor.toFixed(2)},"Voltage":${data.ENERGY.Voltage},"Current":${data.ENERGY.Current.toFixed(3)}}}`
-        console.log(reconstructed_json)
 
-        let data_cid = await generateCID(reconstructed_json);
+        // let reconstructed_json = `{"Time":"${data.Time}","ENERGY":{"TotalStartTime":"${data.ENERGY.TotalStartTime}","Total":${data.ENERGY.Total.toFixed(3)},"Yesterday":${data.ENERGY.Yesterday.toFixed(3)},"Today":${data.ENERGY.Today.toFixed(3)},"Power":${data.ENERGY.Power},"ApparentPower":${data.ENERGY.ApparentPower},"ReactivePower":${data.ENERGY.ReactivePower},"Factor":${data.ENERGY.Factor.toFixed(2)},"Voltage":${data.ENERGY.Voltage},"Current":${data.ENERGY.Current.toFixed(3)}}}`
+        console.log(req.body.data)
+
+        let data_cid = await generateCID(req.body.data);
         console.log(data_cid)
 
         let resp = await fetch(`https://testnet-api.rddl.io/planetmint/asset/cid/${data_cid}`, {
