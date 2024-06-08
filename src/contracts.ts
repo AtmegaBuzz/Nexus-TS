@@ -75,7 +75,7 @@ export async function safeMint(wallet_address: string, machine_addr: string, mac
         to: contract.options.address,
         data: method_abi,
         value: '0',
-        gasPrice: '100000000000',
+        gasPrice: '17431409089',
         gas: BigInt(1)
     };
 

@@ -36,6 +36,8 @@ export async function checkNewDevice(req: Request, res: Response) {
             machineAuthToken: req.header('Authorization')
         }
     })
+
+    console.log(user, "====")
     
     if (user === null) {
         return res.status(400).send("User doen't exist")
@@ -77,7 +79,7 @@ export async function checkNewDevice(req: Request, res: Response) {
         data: {
             address: address,
             machineId: js.machine.machineId,
-            userId: 1,
+            userId: user.id,
             country: gps.Country,
             region: gps.Region,
             city: gps.City,
@@ -127,7 +129,7 @@ export const offchainNotarization = async (req: Request, res: Response) => {
             
             let reconstructed_json = "";
 
-            if (req.body["meter"] === "3") {
+            if (req.body["meter"] === "elite") {
                 
 
                 reconstructed_json = req.body.data
@@ -189,7 +191,7 @@ export const offchainNotarization = async (req: Request, res: Response) => {
 
             res.send("OK")
 
-            if (typeof user?.publicKey === 'string' && device.meter_phase !== "3") {
+            if (typeof user?.publicKey === 'string' && device.meter_phase !== "elite") {
                 await safeMint(user?.publicKey,device.address, device.machineId, data_cid, "MH", data.Time, data.ENERGY.Total);
             } else {
                 console.log("no pub key")
